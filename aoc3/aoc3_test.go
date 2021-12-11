@@ -126,7 +126,31 @@ func TestAOC3P2(t *testing.T) {
 		args args
 		want int
 	}{
-		// TODO: Add test cases.
+		{
+			"it passes aoc3p2",
+			args{data: func() []string {
+				return utils.GrabDataFromFile("./aoc3input.txt")
+			}()},
+			6085575,
+		},
+		{
+			"it passes aoc3p2 with examplar values",
+			args{data: []string{
+				"00100",
+				"11110",
+				"10110",
+				"10111",
+				"10101",
+				"01111",
+				"00111",
+				"11100",
+				"10000",
+				"11001",
+				"00010",
+				"01010",
+			}},
+			230,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

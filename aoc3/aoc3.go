@@ -80,6 +80,73 @@ func AOC3P1(data []string) int {
 	return int(gam * ep)
 }
 
+// 00100
+// 11110 -> 11110
+// 10110 -> 10110 -> 10110 -> 10110 -> 10110
+// 10111 -> 10111 -> 10111 -> 10111 -> 10111 -> 10111
+// 10101 -> 10101 -> 10101 -> 10101
+// 01111
+// 00111
+// 11100 -> 11100
+// 10000 -> 10000 -> 10000
+// 11001 -> 11001
+// 00010
+// 01010
+// Go over each, find most/least common in row, filter rest, repeat
+// In the fifth position,
+// if there are an equal number of 0 bits and 1 bits (one each) keep 1 for most, 0 for least.
 func AOC3P2(data []string) int {
-	return 10
+	getOxyOrCo2 := func(which string, matrix [][]string, iterations int) int {
+		for currentPosition := 0; currentPosition < iterations; currentPosition++ {
+			zeroesList := make([][]string, 0)
+			onesList := make([][]string, 0)
+
+			for _, row := range matrix {
+				if len(matrix) == 1 {
+					break
+				}
+				// for least commin, use 0
+				if row[currentPosition] == "1" {
+					onesList = append(onesList, row)
+				} else {
+					zeroesList = append(zeroesList, row)
+				}
+			}
+
+			if len(matrix) > 1 {
+				if which == "co2" {
+					if len(zeroesList) == len(onesList) {
+						matrix = zeroesList
+						// for least common, look for less than
+					} else if len(zeroesList) < len(onesList) {
+						matrix = zeroesList
+					} else {
+						matrix = onesList
+					}
+				} else {
+					if len(zeroesList) == len(onesList) {
+						matrix = onesList
+						// for least common, look for less than
+					} else if len(zeroesList) > len(onesList) {
+						matrix = zeroesList
+					} else {
+						matrix = onesList
+					}
+				}
+			}
+		}
+		k, _ := strconv.ParseInt(strings.Join(matrix[0], ""), 2, 64)
+		return int(k)
+	}
+
+	oxyMatrix := parseBitMatrix(data)
+	co2Matrix := make([][]string, len(oxyMatrix))
+	copy(co2Matrix, oxyMatrix)
+	iterationCount, err := getIterationCount(oxyMatrix)
+	if err != nil {
+		return -1
+	}
+	oxy := getOxyOrCo2("bob", oxyMatrix, iterationCount)
+	co2 := getOxyOrCo2("co2", co2Matrix, iterationCount)
+	return oxy * co2
 }
