@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -48,53 +49,62 @@ func getBingoData(data *os.File) ([]string, [][]string) {
 	return bingoNums, bingoBoards
 }
 
+type winner struct {
+	id    int
+	score int
+}
+
+var winnersTotal []winner = make([]winner, 0)
+
 func AOC4P1(data *os.File) {
 	nums, boards := getBingoData(data)
-	winnerChannel := make(chan int)
+	// Real bingo approach, unfortunately
+	// we can't do this for the challenge, so we'll wait on them in order :()
 	ctx, cancel := context.WithCancel(context.Background())
 
-	makeChannelWithNums := func(nums []string) chan string {
-		bingoChannel := make(chan string, len(nums))
-		for _, v := range nums {
-			bingoChannel <- v
-		}
-		return bingoChannel
-	}
-
-	boardPlayer := func(numbersRolledChan chan string, winnerChan chan int, board []string, winnerId int, endContext context.Context) {
+	boardPlayer := func(numbersRolledChan chan string, board []string, winnerId int, playerCtx context.Context) {
 		for {
 			select {
-			case <-endContext.Done(): // if cancel() execute
+			case <-time.NewTimer(time.Second * 3).C:
+				return
+			case <-playerCtx.Done():
 				return
 			case newNumberRolled := <-numbersRolledChan:
+
 				found := linearSearchString(newNumberRolled, board)
 				if found != -1 {
 					board[found] = ""
-					won := calculateIfPlayerWon(board)
+					won, total := calculateIfPlayerWon(board)
 					if won {
-						// TODO: Bug, context doesnt take precedence, we actually wanna check it
-						// then default to new num rolled, not do an or as it'll never come in
-						winnerChan <- winnerId
-						// Now calc their score, we got num rolled when they won
-						// and we know everything that isn't a ""
+						prevRolled, _ := strconv.Atoi(newNumberRolled)
+						winnersTotal = append(winnersTotal, winner{winnerId, (prevRolled * total)})
+						return
 					}
 				}
 			}
+
 		}
 	}
 
-	for i, v := range boards {
-
-		time.Sleep(time.Microsecond)
-		go boardPlayer(makeChannelWithNums(nums), winnerChannel, v, i, ctx)
+	channelsList := make([]chan string, len(boards))
+	// Create a channel for each of them
+	for i := range boards {
+		channelsList[i] = make(chan string, len(nums))
 	}
 
-	// Wait for a winner
-	winner := <-winnerChannel
-	cancel()
-	fmt.Println("Winner is: ", winner)
-	fmt.Println("Winners score is: ", <-winnerChannel)
+	for i, v := range boards {
+		go boardPlayer(channelsList[i], v, i, ctx)
+	}
 
+	// Now we send the numbers to each player incrementally
+	for _, num := range nums {
+		for i := 0; i < len(boards)-10; i++ {
+			channelsList[i] <- num
+		}
+		time.Sleep(time.Microsecond)
+	}
+	fmt.Println(winnersTotal)
+	cancel()
 }
 
 func linearSearchString(param string, slice []string) int {
@@ -106,8 +116,20 @@ func linearSearchString(param string, slice []string) int {
 	return -1
 }
 
-func calculateIfPlayerWon(board []string) bool {
+func calculateIfPlayerWon(board []string) (bool, int) {
+	calcNums := func(board []string) int {
+		total := 0
+		for _, v := range board {
+			if v != "" {
+				k, _ := strconv.Atoi(v)
+				total += k
+			}
+		}
+		return total
+	}
+
 	won := false
+	total := 0
 	// Run vertical check
 	for i := 0; i < 5; i++ {
 		winCounter := 0
@@ -118,6 +140,7 @@ func calculateIfPlayerWon(board []string) bool {
 		}
 		if winCounter == 5 {
 			won = true
+			total = calcNums(board)
 			break
 		}
 	}
@@ -132,9 +155,10 @@ func calculateIfPlayerWon(board []string) bool {
 		}
 		if winCounter == 5 {
 			won = true
+			total = calcNums(board)
 			break
 		}
 	}
 
-	return won
+	return won, total
 }
