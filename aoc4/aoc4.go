@@ -112,7 +112,7 @@ type winner struct {
 
 var winnersTotal []winner = make([]winner, 0)
 
-func AOC4P1(data *os.File) winner {
+func AOC4P1(data *os.File) (winner, winner) {
 	nums, boards := getBingoData(data)
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -163,5 +163,5 @@ func AOC4P1(data *os.File) winner {
 	}
 	cancel()
 	fmt.Println("winner found")
-	return winnersTotal[0]
+	return winnersTotal[0], winnersTotal[len(winnersTotal)-1]
 }
