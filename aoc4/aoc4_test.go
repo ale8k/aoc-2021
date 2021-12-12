@@ -160,7 +160,6 @@ func TestAOC4P1(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fmt.Println("test running fine i think ")
 			if got, _ := AOC4P1(tt.args.data); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("AOC4P1() = %v, want %v", got, tt.want)
 			}
@@ -185,16 +184,15 @@ func TestAOC4P2(t *testing.T) {
 		want winner
 	}{
 		{
-			name: "it gets the correct initial bingo winner",
+			name: "it gets the correct last bingo winner",
 			args: args{data: data},
 			want: winner{id: 84, score: 15561},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fmt.Println("test running fine i think ")
 			if _, got := AOC4P1(tt.args.data); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("AOC4P1() = %v, want %v", got, tt.want)
+				t.Errorf("AOC4P2() = %v, want %v", got, tt.want)
 			}
 		})
 	}
