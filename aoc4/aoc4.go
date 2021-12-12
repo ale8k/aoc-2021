@@ -3,7 +3,6 @@ package aoc4
 import (
 	"bufio"
 	"context"
-	"fmt"
 	"io"
 	"os"
 	"regexp"
@@ -47,64 +46,6 @@ func getBingoData(data *os.File) ([]string, [][]string) {
 	}
 
 	return bingoNums, bingoBoards
-}
-
-type winner struct {
-	id    int
-	score int
-}
-
-var winnersTotal []winner = make([]winner, 0)
-
-func AOC4P1(data *os.File) {
-	nums, boards := getBingoData(data)
-	// Real bingo approach, unfortunately
-	// we can't do this for the challenge, so we'll wait on them in order :()
-	ctx, cancel := context.WithCancel(context.Background())
-
-	boardPlayer := func(numbersRolledChan chan string, board []string, winnerId int, playerCtx context.Context) {
-		for {
-			select {
-			case <-time.NewTimer(time.Second * 3).C:
-				return
-			case <-playerCtx.Done():
-				return
-			case newNumberRolled := <-numbersRolledChan:
-
-				found := linearSearchString(newNumberRolled, board)
-				if found != -1 {
-					board[found] = ""
-					won, total := calculateIfPlayerWon(board)
-					if won {
-						prevRolled, _ := strconv.Atoi(newNumberRolled)
-						winnersTotal = append(winnersTotal, winner{winnerId, (prevRolled * total)})
-						return
-					}
-				}
-			}
-
-		}
-	}
-
-	channelsList := make([]chan string, len(boards))
-	// Create a channel for each of them
-	for i := range boards {
-		channelsList[i] = make(chan string, len(nums))
-	}
-
-	for i, v := range boards {
-		go boardPlayer(channelsList[i], v, i, ctx)
-	}
-
-	// Now we send the numbers to each player incrementally
-	for _, num := range nums {
-		for i := 0; i < len(boards)-10; i++ {
-			channelsList[i] <- num
-		}
-		time.Sleep(time.Microsecond)
-	}
-	fmt.Println(winnersTotal)
-	cancel()
 }
 
 func linearSearchString(param string, slice []string) int {
@@ -161,4 +102,63 @@ func calculateIfPlayerWon(board []string) (bool, int) {
 	}
 
 	return won, total
+}
+
+type winner struct {
+	id    int
+	score int
+}
+
+var winnersTotal []winner = make([]winner, 0)
+
+func AOC4P1(data *os.File) winner {
+	nums, boards := getBingoData(data)
+	// Real bingo approach, unfortunately
+	// we can't do this for the challenge, so we'll wait on them in order :()
+	ctx, cancel := context.WithCancel(context.Background())
+
+	boardPlayer := func(numbersRolledChan chan string, board []string, winnerId int, playerCtx context.Context) {
+		for {
+			select {
+			case <-time.NewTimer(time.Second * 3).C:
+				return
+			case <-playerCtx.Done():
+				return
+			case newNumberRolled := <-numbersRolledChan:
+
+				found := linearSearchString(newNumberRolled, board)
+				if found != -1 {
+					board[found] = ""
+					won, total := calculateIfPlayerWon(board)
+					if won {
+						prevRolled, _ := strconv.Atoi(newNumberRolled)
+						winnersTotal = append(winnersTotal, winner{winnerId, (prevRolled * total)})
+						return
+					}
+				}
+			}
+
+		}
+	}
+
+	channelsList := make([]chan string, len(boards))
+	// Create a channel for each of them
+	for i := range boards {
+		channelsList[i] = make(chan string, len(nums))
+	}
+
+	for i, v := range boards {
+		go boardPlayer(channelsList[i], v, i, ctx)
+	}
+
+	// Now we send the numbers to each player incrementally
+	for _, num := range nums {
+		for i := 0; i < len(boards)-10; i++ {
+			channelsList[i] <- num
+		}
+		// Forces order, for purpose of test
+		time.Sleep(time.Microsecond * 50)
+	}
+	cancel()
+	return winnersTotal[0]
 }
