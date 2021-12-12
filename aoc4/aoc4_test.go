@@ -137,6 +137,13 @@ func Test_getBingoData(t *testing.T) {
 }
 
 func TestAOC4P1(t *testing.T) {
+
+	data, err := os.OpenFile("./aoc4input.txt", os.O_RDONLY, 0777)
+	if err != nil {
+		fmt.Println("didnt load file")
+	}
+	defer data.Close()
+
 	type args struct {
 		data *os.File
 	}
@@ -147,21 +154,13 @@ func TestAOC4P1(t *testing.T) {
 	}{
 		{
 			name: "it gets the correct initial bingo winner",
-			args: args{
-				data: func() *os.File {
-					data, err := os.OpenFile("./aoc4input.txt", os.O_RDONLY, 0777)
-					if err != nil {
-						fmt.Println("didnt load file")
-					}
-					defer data.Close()
-					return data
-				}(),
-			},
-			want: winner{id: 0, score: 10},
+			args: args{data: data},
+			want: winner{id: 40, score: 87456},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			fmt.Println("test running fine i think ")
 			if got := AOC4P1(tt.args.data); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("AOC4P1() = %v, want %v", got, tt.want)
 			}

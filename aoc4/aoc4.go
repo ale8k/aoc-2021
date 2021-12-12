@@ -3,6 +3,7 @@ package aoc4
 import (
 	"bufio"
 	"context"
+	"fmt"
 	"io"
 	"os"
 	"regexp"
@@ -113,8 +114,6 @@ var winnersTotal []winner = make([]winner, 0)
 
 func AOC4P1(data *os.File) winner {
 	nums, boards := getBingoData(data)
-	// Real bingo approach, unfortunately
-	// we can't do this for the challenge, so we'll wait on them in order :()
 	ctx, cancel := context.WithCancel(context.Background())
 
 	boardPlayer := func(numbersRolledChan chan string, board []string, winnerId int, playerCtx context.Context) {
@@ -143,15 +142,18 @@ func AOC4P1(data *os.File) winner {
 
 	channelsList := make([]chan string, len(boards))
 	// Create a channel for each of them
+	fmt.Println("creating bingo channels")
 	for i := range boards {
 		channelsList[i] = make(chan string, len(nums))
 	}
 
+	fmt.Println("creating bingo boards go routines")
 	for i, v := range boards {
 		go boardPlayer(channelsList[i], v, i, ctx)
 	}
 
 	// Now we send the numbers to each player incrementally
+	fmt.Println("sending nums to bingo channels")
 	for _, num := range nums {
 		for i := 0; i < len(boards)-10; i++ {
 			channelsList[i] <- num
@@ -160,5 +162,6 @@ func AOC4P1(data *os.File) winner {
 		time.Sleep(time.Microsecond * 50)
 	}
 	cancel()
+	fmt.Println("winner found")
 	return winnersTotal[0]
 }
