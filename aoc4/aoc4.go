@@ -2,10 +2,13 @@ package aoc4
 
 import (
 	"bufio"
+	"context"
+	"fmt"
 	"io"
 	"os"
 	"regexp"
 	"strings"
+	"time"
 )
 
 func getBingoData(data *os.File) ([]string, [][]string) {
@@ -45,17 +48,62 @@ func getBingoData(data *os.File) ([]string, [][]string) {
 	return bingoNums, bingoBoards
 }
 
-// This challenge fits go PERFECTLY!
 func AOC4P1(data *os.File) {
-	_, boards := getBingoData(data)
+	nums, boards := getBingoData(data)
+	winnerChannel := make(chan int)
+	ctx, cancel := context.WithCancel(context.Background())
 
-	bingoChannel := make(chan string, len(boards))
-	winnerChannel := make(chan string)
-
-	boardPlayer := func(numbersRolledChan chan string, winnerChan chan string) {
-
+	makeChannelWithNums := func(nums []string) chan string {
+		bingoChannel := make(chan string, len(nums))
+		for _, v := range nums {
+			bingoChannel <- v
+		}
+		return bingoChannel
 	}
 
+	boardPlayer := func(numbersRolledChan chan string, winnerChan chan int, board []string, winnerId int, endContext context.Context) {
+		for {
+			select {
+			case <-endContext.Done(): // if cancel() execute
+				return
+			case newNumberRolled := <-numbersRolledChan:
+				found := linearSearchString(newNumberRolled, board)
+				if found != -1 {
+					board[found] = ""
+					won := calculateIfPlayerWon(board)
+					if won {
+						// TODO: Bug, context doesnt take precedence, we actually wanna check it
+						// then default to new num rolled, not do an or as it'll never come in
+						winnerChan <- winnerId
+						// Now calc their score, we got num rolled when they won
+						// and we know everything that isn't a ""
+					}
+				}
+			}
+		}
+	}
+
+	for i, v := range boards {
+
+		time.Sleep(time.Microsecond)
+		go boardPlayer(makeChannelWithNums(nums), winnerChannel, v, i, ctx)
+	}
+
+	// Wait for a winner
+	winner := <-winnerChannel
+	cancel()
+	fmt.Println("Winner is: ", winner)
+	fmt.Println("Winners score is: ", <-winnerChannel)
+
+}
+
+func linearSearchString(param string, slice []string) int {
+	for i, v := range slice {
+		if v == param {
+			return i
+		}
+	}
+	return -1
 }
 
 func calculateIfPlayerWon(board []string) bool {
