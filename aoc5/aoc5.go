@@ -2,15 +2,26 @@ package aoc5
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"os"
 	"strconv"
 	"strings"
 )
 
+// Example:
+// .......1..
+// ..1....1..
+// ..1....1..
+// .......1..
+// .112111211
+// ..........
+// ..........
+// ..........
+// ..........
+// 222111....
+
 // Plots a bunch of coordinates onto a matrix
-func AOC5P1(data *os.File) {
+func AOC5P1(data *os.File) int {
 	matrix, lineCoords := makeMatrixAndLines(data)
 
 	for _, coord := range lineCoords {
@@ -29,9 +40,8 @@ func AOC5P1(data *os.File) {
 			}
 		}
 	}
-	// 7370 tried, wrong, too low
-	fmt.Println(crossedOverLines)
 
+	return crossedOverLines
 }
 
 func makeMatrixAndLines(data *os.File) ([][]int, [][]int) {
@@ -74,25 +84,25 @@ func getHorizontalLines(data *os.File) [][]int {
 
 		// Handle only horizontal for first part
 		if fromX == toX {
-			if fromY <= toY {
-				for fromY != toY {
+			if fromY < toY {
+				for fromY <= toY {
 					lines = append(lines, []int{fromX, fromY})
 					fromY++
 				}
 			} else {
-				for fromY != toY {
+				for fromY >= toY {
 					lines = append(lines, []int{fromX, fromY})
 					fromY--
 				}
 			}
 		} else if fromY == toY {
 			if fromX < toX {
-				for fromX != toX {
+				for fromX <= toX {
 					lines = append(lines, []int{fromX, fromY})
 					fromX++
 				}
 			} else {
-				for fromX != toX {
+				for fromX >= toX {
 					lines = append(lines, []int{fromX, fromY})
 					fromX--
 				}
