@@ -122,3 +122,58 @@ func getLargestXY(slice [][]int, xOrY int) int {
 	}
 	return currentLargest
 }
+
+// Gets all co-ordinatates to plot the lines on a matrix
+func getAllOverlappingLines(data *os.File) [][]int {
+	reader := bufio.NewReader(data)
+	lines := make([][]int, 0)
+	for {
+		line, _, err := reader.ReadLine()
+		if err == io.EOF {
+			break
+		}
+
+		splitCoordinates := strings.Split(string(line), " -> ")
+		fromXY := strings.Split(splitCoordinates[0], ",")
+		toXY := strings.Split(splitCoordinates[1], ",")
+
+		fromX, _ := strconv.Atoi(fromXY[0])
+		toX, _ := strconv.Atoi(toXY[0])
+
+		fromY, _ := strconv.Atoi(fromXY[1])
+		toY, _ := strconv.Atoi(toXY[1])
+
+		// Think diagonal first
+		// Else just treat it as a horizontal line, I think we can do this by a few conditions
+		if fromX != toX && fromY != toY {
+			// Now we do a check for if its a < > or > <, and -+ or +-
+		}
+
+		if fromX == toX {
+			if fromY < toY {
+				for fromY <= toY {
+					lines = append(lines, []int{fromX, fromY})
+					fromY++
+				}
+			} else {
+				for fromY >= toY {
+					lines = append(lines, []int{fromX, fromY})
+					fromY--
+				}
+			}
+		} else if fromY == toY {
+			if fromX < toX {
+				for fromX <= toX {
+					lines = append(lines, []int{fromX, fromY})
+					fromX++
+				}
+			} else {
+				for fromX >= toX {
+					lines = append(lines, []int{fromX, fromY})
+					fromX--
+				}
+			}
+		}
+	}
+	return lines
+}
