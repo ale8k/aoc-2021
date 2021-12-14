@@ -8,16 +8,15 @@ import (
 	"strings"
 )
 
-// Example:
-// .......1..
-// ..1....1..
-// ..1....1..
-// .......1..
-// .112111211
-// ..........
-// ..........
-// ..........
-// ..........
+// 1.1....11.
+// .111...2..
+// ..2.1.111.
+// ...1.2.2..
+// .112313211
+// ...1.2....
+// ..1...1...
+// .1.....1..
+// 1.......1.
 // 222111....
 
 // Plots a bunch of coordinates onto a matrix
@@ -44,8 +43,41 @@ func AOC5P1(data *os.File) int {
 	return crossedOverLines
 }
 
+func AOC5P2(data *os.File) int {
+	matrix, lineCoords := makeMatrixAndDiagonalLines(data)
+
+	for _, coord := range lineCoords {
+		x := coord[0]
+		y := coord[1]
+		matrix[y][x]++
+	}
+
+	crossedOverLines := 0
+
+	// Gets all co-ordinates of value 2 or greater
+	for _, yAxis := range matrix {
+		for _, coordinate := range yAxis {
+			if coordinate > 1 {
+				crossedOverLines++
+			}
+		}
+	}
+
+	return crossedOverLines
+}
+
 func makeMatrixAndLines(data *os.File) ([][]int, [][]int) {
 	lines := getHorizontalLines(data)
+	largestX := getLargestXY(lines, 0)
+	largestY := getLargestXY(lines, 1)
+
+	matrix := make([][]int, largestY+1)
+	fillMatrix(matrix, largestX+1, largestY+1)
+	return matrix, lines
+}
+
+func makeMatrixAndDiagonalLines(data *os.File) ([][]int, [][]int) {
+	lines := getAllOverlappingLines(data)
 	largestX := getLargestXY(lines, 0)
 	largestY := getLargestXY(lines, 1)
 
@@ -143,10 +175,36 @@ func getAllOverlappingLines(data *os.File) [][]int {
 		fromY, _ := strconv.Atoi(fromXY[1])
 		toY, _ := strconv.Atoi(toXY[1])
 
-		// Think diagonal first
-		// Else just treat it as a horizontal line, I think we can do this by a few conditions
-		if fromX != toX && fromY != toY {
-			// Now we do a check for if its a < > or > <, and -+ or +-
+		if fromX < toX && fromY > toY {
+			for fromX < toX && fromY > toY {
+				lines = append(lines, []int{fromX, fromY})
+				fromX++
+				fromY--
+			}
+		}
+
+		if fromX > toX && fromY < toY {
+			for fromX > toX && fromY < toY {
+				lines = append(lines, []int{fromX, fromY})
+				fromX--
+				fromY++
+			}
+		}
+
+		if fromX < toX && fromY < toY {
+			for fromX < toX && fromY < toY {
+				lines = append(lines, []int{fromX, fromY})
+				fromX++
+				fromY++
+			}
+		}
+
+		if fromX > toX && fromY > toY {
+			for fromX > toX && fromY > toY {
+				lines = append(lines, []int{fromX, fromY})
+				fromX--
+				fromY--
+			}
 		}
 
 		if fromX == toX {
@@ -174,6 +232,7 @@ func getAllOverlappingLines(data *os.File) [][]int {
 				}
 			}
 		}
+
 	}
 	return lines
 }
