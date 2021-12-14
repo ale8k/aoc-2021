@@ -1,7 +1,10 @@
 package aoc6
 
 import (
+	"fmt"
 	"io"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"strconv"
 	"strings"
@@ -15,6 +18,10 @@ type lanternfish struct {
 }
 
 func AOC6P1(data *os.File) int {
+	go func() {
+		fmt.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
+
 	byteData, _ := io.ReadAll(data)
 	k := strings.Split(string(byteData), ",")
 	l := make([]int, len(k))
@@ -24,9 +31,10 @@ func AOC6P1(data *os.File) int {
 
 	fishies := mapInputToLanternfish(l)
 
-	daysLeft := 80
+	daysLeft := 256
 
 	for i := 0; i < daysLeft; i++ {
+		fmt.Printf("Day %d len %d\n", i, len(fishies))
 		for _, fishy := range fishies {
 			if fishy.BirthTimer != 0 {
 				fishy.BirthTimer--
