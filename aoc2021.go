@@ -2,22 +2,17 @@ package main
 
 import (
 	"fmt"
+	"os"
 
-	"github.com/ale8k/aoc2021/aoc3"
-	"github.com/ale8k/aoc2021/utils"
+	"github.com/ale8k/aoc2021/aoc6"
 )
 
 func main() {
-	// 00100
-	// 11110
-	// 10110
-	bob := []string{
-		"00100",
-		"11110",
-		"10110",
+	data, err := os.OpenFile("./aoc6/aoc6inputexample.txt", os.O_RDONLY, 0777)
+	if err != nil {
+		fmt.Println("didnt load file")
 	}
-	fmt.Println(aoc3.AOC3P1(bob))
-
-	fmt.Println(aoc3.AOC3P1(utils.GrabDataFromFile("./aoc3/aoc3input.txt")))
+	defer data.Close()
+	fmt.Println(aoc6.AOC6P2(data))
 
 }
