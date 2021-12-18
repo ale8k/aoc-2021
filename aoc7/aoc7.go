@@ -52,31 +52,69 @@ func AOC7P2(data *os.File) int {
 		positions = append(positions, num)
 	}
 
-	leastDiffIndex := 0
-	countOfDiffs := 0
-	for i, val := range positions {
-		fmt.Println("checking index:", i)
-		currentCheck := 0
+	_, highest := getHighest(positions)
+	_, lowest := getLowest(positions)
+
+	currentLowestFuelRate := 0
+	for i := lowest; i < highest; i++ {
+		current := 0
+
 		for j := 0; j < len(positions); j++ {
-			if val > positions[j] {
-				currentCheck += val - positions[j]
-			} else if val < positions[j] {
-				currentCheck += positions[j] - val
+			diff := 0
+			if positions[j] > i {
+				diff = calcFuel((positions[j] - i) + 1)
+			} else if i > positions[j] {
+				diff = calcFuel((i - positions[j]) + 1)
 			}
-			if i == j {
-				continue
-			}
+
+			current += diff
 		}
-		if countOfDiffs == 0 {
-			countOfDiffs = currentCheck
+
+		if i == 0 {
+			currentLowestFuelRate = current
 		}
-		fmt.Printf("current check: %v \n \n", currentCheck)
-		if countOfDiffs > currentCheck {
-			countOfDiffs = currentCheck
-			leastDiffIndex = i
+		if current < currentLowestFuelRate {
+			currentLowestFuelRate = current
+
 		}
 	}
-	fmt.Println(leastDiffIndex, countOfDiffs)
 
-	return countOfDiffs
+	return currentLowestFuelRate
+}
+
+// Based on the steps, calcs the fuel incrementally up to the step
+func calcFuel(steps int) int {
+	finalFuel := make([]int, 0)
+	for i := 0; i < steps; i++ {
+		finalFuel = append(finalFuel, i)
+	}
+	k := 0
+	for _, v := range finalFuel {
+		k += v
+	}
+	return k
+}
+
+func getHighest(slice []int) (int, int) {
+	currentHighestIndex := 0
+	currentHighest := 0
+	for i, v := range slice {
+		if v > currentHighest {
+			currentHighest = v
+			currentHighestIndex = i
+		}
+	}
+	return currentHighestIndex, currentHighest
+}
+
+func getLowest(slice []int) (int, int) {
+	currentLowestIndex := 0
+	currentLowest := slice[0]
+	for i, v := range slice {
+		if v < currentLowest {
+			currentLowest = v
+			currentLowestIndex = i
+		}
+	}
+	return currentLowestIndex, currentLowest
 }
