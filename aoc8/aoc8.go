@@ -109,10 +109,10 @@ func AOC8P2(data *os.File) int {
 
 	// func calcSegments(...) string[]string
 	const (
-		ONE   int = 2 // unique C F
-		SEVEN int = 3 // unique A C F
-		FOUR  int = 4 // unique B C D F
-		EIGHT int = 7 // unique A B C D E F G - bit harder this one
+		ONE_SIZE   int = 2 // unique C F
+		SEVEN_SIZE int = 3 // unique A C F
+		FOUR_SIZE  int = 4 // unique B C D F
+		EIGHT_SIZE int = 7 // unique A B C D E F G - bit harder this one
 	)
 
 	one := ""
@@ -126,13 +126,13 @@ func AOC8P2(data *os.File) int {
 	for _, j := range stuff {
 		sizeOfNum := len(j)
 		switch sizeOfNum {
-		case ONE:
+		case ONE_SIZE:
 			one = j
-		case SEVEN:
+		case SEVEN_SIZE:
 			seven = j
-		case FOUR:
+		case FOUR_SIZE:
 			four = j
-		case EIGHT:
+		case EIGHT_SIZE:
 			eight = j
 		}
 	}
@@ -153,13 +153,52 @@ func AOC8P2(data *os.File) int {
 	// Seven, 0 = A, 1 = C, 2 = F
 	// Four, 0 = B, 1 = C, 2 = D, 3 = F
 	// Eight 0-6 all in order
+	// ONE := []int{C, F}
+	// SEVEN := []int{A, C, F}
+	// FOUR := []int{B, C, D, F}
+	// EIGHT := []int{A, B, C, D, E, F, G}
+	segmentMap1 := make(map[string]int)
+	segmentMap2 := make(map[string]int)
+	segmentMap3 := make(map[string]int)
+	segmentMap4 := make(map[string]int)
 
-	// So if 1 was 'be', we know:
-	// Position 0 = C and C = 2, so B = 2
-	// Position 1 = F and F = 5, so E = 5
-	// As a result, segment c is actually b and segment e is actually f
+	setSegmentsForOne := func(n string, segMap map[string]int) {
+		segMap[string(n[0])] = C
+		segMap[string(n[1])] = F
+	}
 
+	setSegmentsForSeven := func(n string, segMap map[string]int) {
+		segMap[string(n[0])] = A
+		segMap[string(n[1])] = C
+		segMap[string(n[2])] = F
+	}
+
+	setSegmentsForFour := func(n string, segMap map[string]int) {
+		segMap[string(n[0])] = B
+		segMap[string(n[1])] = C
+		segMap[string(n[2])] = D
+		segMap[string(n[3])] = F
+	}
+
+	// If this works... then it basically solves all of them lol
+	setSegmentsForEight := func(n string, segMap map[string]int) {
+		segMap[string(n[0])] = A
+		segMap[string(n[1])] = B
+		segMap[string(n[2])] = C
+		segMap[string(n[3])] = D
+		segMap[string(n[4])] = E
+		segMap[string(n[5])] = F
+		segMap[string(n[6])] = G
+	}
 	fmt.Println(one, seven, four, eight)
+	setSegmentsForOne(one, segmentMap1)
+	setSegmentsForSeven(seven, segmentMap2)
+	setSegmentsForFour(four, segmentMap3)
+	setSegmentsForEight(eight, segmentMap4)
+	fmt.Println(segmentMap1)
+	fmt.Println(segmentMap2)
+	fmt.Println(segmentMap3)
+	fmt.Println(segmentMap4)
 
 	return 'A'
 }
